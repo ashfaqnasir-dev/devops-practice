@@ -1,0 +1,22 @@
+# Logs
+*.log
+
+# Build artifacts
+build/
+dist/
+
+# Temp
+tmp/
+temp/
+
+# Backups
+*.bak
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
