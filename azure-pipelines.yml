@@ -1,6 +1,5 @@
 # ============================================
-# DevOps Practice — Smart CI Pipeline
-# Har folder ka apna check
+# DevOps Practice — CI Pipeline
 # ============================================
 
 trigger:
@@ -9,219 +8,58 @@ trigger:
       - main
   paths:
     include:
-      - '01-linux-fundamentals/**'
-      - '02-git-version-control/**'
-      - '03-bash-scripting/**'
-      - '04-networking-basics/**'
-      - '05-cicd-concepts/**'
-      - '06-azure-devops/**'
-      - '07-yaml-pipelines/**'
-      - '08-docker-containers/**'
-      - '09-kubernetes/**'
-      - '10-terraform-iac/**'
-      - '11-cloud-azure-aws/**'
-      - '12-monitoring-logging/**'
+      - "03-bash-scripting/**"
+      - "10-terraform-iac/**"
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: "ubuntu-latest"
 
-stages:
-  # ============================================
-  # Stage 1: Detect Changes
-  # ============================================
-  - stage: Detect
-    displayName: 'Detect Changes'
-    jobs:
-      - job: DetectJob
-        displayName: 'Detect which folder changed'
-        steps:
-          - script: |
-              echo "=== Change Detection ==="
-              echo "Commit: $(Build.SourceVersion)"
-              echo "Branch: $(Build.SourceBranchName)"
-              echo ""
-              echo "Files changed:"
-              git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "First commit"
-              
-              CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -oE '^[0-9]{2}-[a-z-]+' | head -1)
-              
-              if [ -n "$CHANGED" ]; then
-                echo "##vso[task.setvariable variable=CHECK_FOLDER;isOutput=true]$CHANGED"
-                echo "Folder changed: $CHANGED"
-              else
-                echo "##vso[task.setvariable variable=CHECK_FOLDER;isOutput=true]all"
-                echo "Multiple/all folders"
-              fi
-            name: detect
-            displayName: 'Detect changed folder'
+steps:
+  # 1. Build Info
+  - script: |
+      echo "============================================"
+      echo "DevOps Practice CI"
+      echo "============================================"
+      echo "Branch: $(Build.SourceBranchName)"
+      echo "Commit: $(Build.SourceVersion)"
+      echo "Triggered by: $(Build.Reason)"
+    displayName: "Show build info"
 
-  # ============================================
-  # Stage 2: Run Checks Based on Folder
-  # ============================================
-  - stage: Check
-    displayName: 'Run Checks'
-    dependsOn: Detect
-    jobs:
-      - job: CheckJob
-        displayName: 'Check changed folder'
-        variables:
-          FOLDER: $[ stageDependencies.Detect.DetectJob.outputs['detect.CHECK_FOLDER'] ]
-        steps:
-          # 01 - Linux Fundamentals
-          - script: |
-              echo "=== Checking 01-linux-fundamentals ==="
-              if [ -d "01-linux-fundamentals" ]; then
-                echo "Files:"
-                find 01-linux-fundamentals -type f | head -10
-                echo "Markdown files:"
-                find 01-linux-fundamentals -name "*.md" | wc -l
-              fi
-              echo "✅ Linux check complete"
-            displayName: '01 - Linux Fundamentals'
-            condition: or(eq(variables.FOLDER, '01-linux-fundamentals'), eq(variables.FOLDER, 'all'))
+  # 2. ShellCheck
+  - script: |
+      echo "=== Installing ShellCheck ==="
+      sudo apt install -y shellcheck
+      echo ""
+      echo "=== Bash Scripts Found ==="
+      find 03-bash-scripting -name "*.sh" | wc -l
+      echo ""
+      echo "=== Running ShellCheck ==="
+      find 03-bash-scripting -name "*.sh" -exec shellcheck {} \; || true
+    displayName: "Check Bash Scripts"
 
-          # 02 - Git Version Control
-          - script: |
-              echo "=== Checking 02-git-version-control ==="
-              if [ -d "02-git-version-control" ]; then
-                echo "Git repos:"
-                find 02-git-version-control -name ".git" -type d | head -5
-              fi
-              echo "✅ Git check complete"
-            displayName: '02 - Git Version Control'
-            condition: or(eq(variables.FOLDER, '02-git-version-control'), eq(variables.FOLDER, 'all'))
+  # 3. Run Real Script
+  - script: |
+      echo "=== Running hello.sh ==="
+      chmod +x 03-bash-scripting/Day1/hello.sh
+      bash 03-bash-scripting/Day1/hello.sh
+    displayName: "Run hello.sh"
 
-          # 03 - Bash Scripting (ShellCheck)
-          - script: |
-              echo "=== Checking 03-bash-scripting ==="
-              sudo apt install -y shellcheck
-              if [ -d "03-bash-scripting" ]; then
-                echo "Total .sh files:"
-                find 03-bash-scripting -name "*.sh" | wc -l
-                echo ""
-                echo "Running ShellCheck..."
-                find 03-bash-scripting -name "*.sh" -exec shellcheck {} \; || true
-              fi
-              echo "✅ Bash check complete"
-            displayName: '03 - Bash Scripting (ShellCheck)'
-            condition: or(eq(variables.FOLDER, '03-bash-scripting'), eq(variables.FOLDER, 'all'))
+  # 4. Terraform
+  - script: |
+      echo "=== Installing Terraform ==="
+      wget -q https://releases.hashicorp.com/terraform/1.9.5/terraform_1.9.5_linux_amd64.zip
+      unzip -q terraform_1.9.5_linux_amd64.zip
+      sudo mv terraform /usr/local/bin/
+      terraform --version
+      echo ""
+      echo "=== Terraform Files ==="
+      find 10-terraform-iac -name "*.tf" | head -5
+    displayName: "Check Terraform"
 
-          # 04 - Networking Basics
-          - script: |
-              echo "=== Checking 04-networking-basics ==="
-              if [ -d "04-networking-basics" ]; then
-                find 04-networking-basics -type f | head -10
-              fi
-              echo "✅ Networking check complete"
-            displayName: '04 - Networking Basics'
-            condition: or(eq(variables.FOLDER, '04-networking-basics'), eq(variables.FOLDER, 'all'))
-
-          # 05 - CI/CD Concepts
-          - script: |
-              echo "=== Checking 05-cicd-concepts ==="
-              if [ -d "05-cicd-concepts" ]; then
-                find 05-cicd-concepts -type f | head -10
-              fi
-              echo "✅ CI/CD check complete"
-            displayName: '05 - CI/CD Concepts'
-            condition: or(eq(variables.FOLDER, '05-cicd-concepts'), eq(variables.FOLDER, 'all'))
-
-          # 06 - Azure DevOps
-          - script: |
-              echo "=== Checking 06-azure-devops ==="
-              if [ -d "06-azure-devops" ]; then
-                find 06-azure-devops \( -name "*.yml" -o -name "*.yaml" -o -name "*.md" \) | head -10
-              fi
-              echo "✅ Azure DevOps check complete"
-            displayName: '06 - Azure DevOps'
-            condition: or(eq(variables.FOLDER, '06-azure-devops'), eq(variables.FOLDER, 'all'))
-
-          # 07 - YAML Pipelines
-          - script: |
-              echo "=== Checking 07-yaml-pipelines ==="
-              if [ -d "07-yaml-pipelines" ]; then
-                find 07-yaml-pipelines \( -name "*.yml" -o -name "*.yaml" \) | head -10
-              fi
-              echo "✅ YAML Pipelines check complete"
-            displayName: '07 - YAML Pipelines'
-            condition: or(eq(variables.FOLDER, '07-yaml-pipelines'), eq(variables.FOLDER, 'all'))
-
-          # 08 - Docker Containers
-          - script: |
-              echo "=== Checking 08-docker-containers ==="
-              if [ -d "08-docker-containers" ]; then
-                echo "Dockerfiles:"
-                find 08-docker-containers -name "Dockerfile*" | head -5
-              fi
-              echo "✅ Docker check complete"
-            displayName: '08 - Docker Containers'
-            condition: or(eq(variables.FOLDER, '08-docker-containers'), eq(variables.FOLDER, 'all'))
-
-          # 09 - Kubernetes
-          - script: |
-              echo "=== Checking 09-kubernetes ==="
-              if [ -d "09-kubernetes" ]; then
-                find 09-kubernetes \( -name "*.yaml" -o -name "*.yml" \) | head -10
-              fi
-              echo "✅ Kubernetes check complete"
-            displayName: '09 - Kubernetes'
-            condition: or(eq(variables.FOLDER, '09-kubernetes'), eq(variables.FOLDER, 'all'))
-
-          # 10 - Terraform IaC
-          - script: |
-              echo "=== Checking 10-terraform-iac ==="
-              wget -q https://releases.hashicorp.com/terraform/1.9.5/terraform_1.9.5_linux_amd64.zip
-              unzip -q terraform_1.9.5_linux_amd64.zip
-              sudo mv terraform /usr/local/bin/
-              terraform --version
-              if [ -d "10-terraform-iac" ]; then
-                echo ""
-                echo "Terraform files:"
-                find 10-terraform-iac -name "*.tf" | head -10
-                echo ""
-                echo "Format check:"
-                find 10-terraform-iac -name "*.tf" -exec terraform fmt -check {} \; || true
-              fi
-              echo "✅ Terraform check complete"
-            displayName: '10 - Terraform (fmt check)'
-            condition: or(eq(variables.FOLDER, '10-terraform-iac'), eq(variables.FOLDER, 'all'))
-
-          # 11 - Cloud Azure/AWS
-          - script: |
-              echo "=== Checking 11-cloud-azure-aws ==="
-              if [ -d "11-cloud-azure-aws" ]; then
-                find 11-cloud-azure-aws -type f | head -10
-              fi
-              echo "✅ Cloud check complete"
-            displayName: '11 - Cloud (Azure/AWS)'
-            condition: or(eq(variables.FOLDER, '11-cloud-azure-aws'), eq(variables.FOLDER, 'all'))
-
-          # 12 - Monitoring & Logging
-          - script: |
-              echo "=== Checking 12-monitoring-logging ==="
-              if [ -d "12-monitoring-logging" ]; then
-                find 12-monitoring-logging -type f | head -10
-              fi
-              echo "✅ Monitoring check complete"
-            displayName: '12 - Monitoring & Logging'
-            condition: or(eq(variables.FOLDER, '12-monitoring-logging'), eq(variables.FOLDER, 'all'))
-
-  # ============================================
-  # Stage 3: Summary
-  # ============================================
-  - stage: Summary
-    displayName: 'Summary'
-    dependsOn: Check
-    jobs:
-      - job: SummaryJob
-        displayName: 'Pipeline Summary'
-        steps:
-          - script: |
-              echo "============================================"
-              echo "✅ CI Pipeline Complete"
-              echo "============================================"
-              echo ""
-              echo "Commit: $(Build.SourceVersion)"
-              echo ""
-              echo "All checks passed!"
-            displayName: 'Success'
+  # 5. Success
+  - script: |
+      echo ""
+      echo "============================================"
+      echo "✅ CI Pipeline Complete"
+      echo "============================================"
+    displayName: "Success"
