@@ -35,7 +35,9 @@ Pipeline
 └── stages     (Bade phases)
     └── jobs   (Kaam ke groups)
         └── steps (Asal commands)
-Core Components (Quick Reference)
+
+## Core Components (Quick Reference)
+
 Component	Purpose	Example
 1. trigger	Auto-run hone ki condition (kab chalega).	trigger: [main]
 2. pool	Machine select karta hai (kahan chalega).	pool:\n vmImage: 'ubuntu-latest'
@@ -80,7 +82,8 @@ stages:
         steps:
           - script: echo "Deploying $(APP_NAME)"
             displayName: 'Deploy Script'
-💡 Quick Tips
+
+##💡 Quick Tips
 dependsOn: Stage 2 ko Stage 1 ke baad chalane ke liye use hota hai.
 
 displayName: Azure UI mein sundar naam dikhane ke liye.
