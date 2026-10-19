@@ -36,7 +36,8 @@ Pipeline
     └── jobs   (Kaam ke groups)
         └── steps (Asal commands)
 
-## Core Components (Quick Reference)
+
+## 🚀 Core Components (Quick Reference)
 
 Component	Purpose	Example
 1. trigger	Auto-run hone ki condition (kab chalega).	trigger: [main]
@@ -65,6 +66,7 @@ variables:
 stages:
   # --- Stage 1: Build ---
   - stage: BuildStage
+
     displayName: 'Build Application'
     jobs:
       - job: BuildJob
