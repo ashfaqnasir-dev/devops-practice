@@ -1,0 +1,110 @@
+# 🔄 05.01 CI Fundamentals — Complete Guide
+
+> Continuous Integration (CI) ka core concept, workflow, faiday aur tools overview.
+
+---
+
+## 📌 Summary Table
+
+| Subtopic | Topic Name | Core Focus |
+| :--- | :--- | :--- |
+| **05.01.01** | What is CI? | Code ko frequent intervals par shared repository mein merge karna |
+| **05.01.02** | Benefits of CI | Bugs ka jaldi pata lagna, fast delivery, manual errors ka khatma |
+| **05.01.03** | CI Workflow | Code push se lekar automated build aur testing ka step-by-step cycle |
+| **05.01.04** | CI Tools Overview | Azure Pipelines, GitHub Actions, Jenkins, aur GitLab CI ka comparison |
+
+---
+
+## 05.01.01 What is CI? (Continuous Integration)
+
+Continuous Integration (CI) ek software development practice hai jahan developers apne code changes ko regularly (aksar din mein multiple times) ek central repository (jaise GitHub ya Azure Repos) mein merge karte hain.
+
+Har commit ya merge par ek **automated build** aur **automated tests** trigger hote hain, taake yeh verify kiya ja sake ke naya code purane application code ko break nahi kar raha.
+
+```text
+[ Developer Machine ]
+        │  (git push)
+        ▼
+[ Central Repo (GitHub / Azure Repos) ]
+        │  (automated trigger)
+        ▼
+[ CI Server (Build + Run Tests) ]
+        │
+   ┌────┴────┐
+   ▼         ▼
+✅ Pass   ❌ Fail (Alert developer immediately)
+```
+
+---
+
+## 05.01.02 Benefits of CI
+
+1. **Early Bug Detection:** Choti commits par tests chalne se bugs usi waqt pakad mein aa jate hain, mahinon baad nahi.
+2. **Eliminates "Merge Hell":** Jab poori team din mein kai baar merge karti hai, toh bade aur complex merge conflicts khatam ho jate hain.
+3. **Automated Feedback Loop:** Developer ko push karte hi 2-5 minutes mein pata chal jata hai ke build pass hui ya fail.
+4. **Consistent Code Quality:** Linters aur unit tests ensure karte hain ke production standard maintain rahe.
+5. **Fast Delivery:** Tested code hamesha ready-to-deploy state mein rehta hai.
+
+---
+
+## 05.01.03 CI Workflow (Step-by-Step Cycle)
+
+Ek ideal CI pipeline mein yeh marhale hote hain:
+
+```text
+1. Code Local ➔ 2. Git Push ➔ 3. Automated Build ➔ 4. Automated Tests ➔ 5. Artifact Generated
+```
+
+| Step | Action | Kya Hota Hai? |
+| :--- | :--- | :--- |
+| **1. Commit & Push** | Developer feature branch par kaam khatam karke push karta hai. | `git push origin feature-auth` |
+| **2. Trigger Event** | CI server PR ya push detect karke pipeline start karta hai. | Webhook notification |
+| **3. Clean Environment** | Fresh virtual machine ya container spawn hota hai. | Ubuntu / Windows Runner |
+| **4. Build & Compile** | Dependencies install hoti hain aur code compile hota hai. | `npm install`, `dotnet build` |
+| **5. Automated Testing** | Unit tests aur code linters execute hote hain. | `pytest`, `npm test` |
+| **6. Feedback / Artifact** | Status badge update hota hai aur binary package save hota hai. | Pass/Fail report |
+
+---
+
+## 05.01.04 CI Tools Overview
+
+Industry mein use hone wale top CI tools ka comparison:
+
+| Tool | Type | Best For | Key Highlight |
+| :--- | :--- | :--- | :--- |
+| **Azure Pipelines** | Cloud / Hybrid | Enterprise & Multi-Cloud | Powerful multi-stage pipelines, Azure Boards integration |
+| **GitHub Actions** | Cloud-native | Open-source & Modern Web | GitHub repo ke sath seamless integration, Marketplace actions |
+| **GitLab CI/CD** | All-in-one | Complete DevOps Lifecycle | Built-in container registry aur single application platform |
+| **Jenkins** | Self-hosted | Custom on-prem setups | Open-source, plugins ka bohot bada ecosystem, self-managed |
+
+---
+
+## 💡 Real-World CI Configuration Snippet
+
+Ek basic GitHub Actions / Azure Pipelines setup testing ke liye aisi dikhti hai:
+
+```yaml
+# Simple CI Pipeline Example
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.11'
+    displayName: 'Set Python Version'
+
+  - script: |
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
+    displayName: 'Install Dependencies'
+
+  - script: |
+      pytest tests/
+    displayName: 'Run Automated Tests'
+```
+
+**Status:** ✅ Complete
