@@ -1,65 +1,42 @@
-# ============================================
-# DevOps Practice — CI Pipeline
-# ============================================
-
 trigger:
-  branches:
-    include:
-      - main
-  paths:
-    include:
-      - "03-bash-scripting/**"
-      - "10-terraform-iac/**"
+  - main
 
 pool:
-  vmImage: "ubuntu-latest"
+  vmImage: 'ubuntu-latest'
 
-steps:
-  # 1. Build Info
-  - script: |
-      echo "============================================"
-      echo "DevOps Practice CI"
-      echo "============================================"
-      echo "Branch: $(Build.SourceBranchName)"
-      echo "Commit: $(Build.SourceVersion)"
-      echo "Triggered by: $(Build.Reason)"
-    displayName: "Show build info"
+stages:
+  # ==========================================
+  # Stage 1: BUILD
+  # ==========================================
+  - stage: BuildStage
+    displayName: '1. Build Application'
+    jobs:
+      - job: BuildJob
+        steps:
+          - script: |
+              echo "Starting Build Process..."
+              echo "Listing files in the repository:"
+              ls -la
+            displayName: 'List Files'
 
-  # 2. ShellCheck
-  - script: |
-      echo "=== Installing ShellCheck ==="
-      sudo apt install -y shellcheck
-      echo ""
-      echo "=== Bash Scripts Found ==="
-      find 03-bash-scripting -name "*.sh" | wc -l
-      echo ""
-      echo "=== Running ShellCheck ==="
-      find 03-bash-scripting -name "*.sh" -exec shellcheck {} \; || true
-    displayName: "Check Bash Scripts"
+          - script: |
+              echo "Simulating Code Compilation..."
+              sleep 2
+              echo "Build Completed Successfully!"
+            displayName: 'Compile Code'
 
-  # 3. Run Real Script
-  - script: |
-      echo "=== Running hello.sh ==="
-      chmod +x 03-bash-scripting/Day1/hello.sh
-      bash 03-bash-scripting/Day1/hello.sh
-    displayName: "Run hello.sh"
-
-  # 4. Terraform
-  - script: |
-      echo "=== Installing Terraform ==="
-      wget -q https://releases.hashicorp.com/terraform/1.9.5/terraform_1.9.5_linux_amd64.zip
-      unzip -q terraform_1.9.5_linux_amd64.zip
-      sudo mv terraform /usr/local/bin/
-      terraform --version
-      echo ""
-      echo "=== Terraform Files ==="
-      find 10-terraform-iac -name "*.tf" | head -5
-    displayName: "Check Terraform"
-
-  # 5. Success
-  - script: |
-      echo ""
-      echo "============================================"
-      echo "✅ CI Pipeline Complete"
-      echo "============================================"
-    displayName: "Success"
+  # ==========================================
+  # Stage 2: DEPLOY (Depends on Build)
+  # ==========================================
+  - stage: DeployStage
+    displayName: '2. Deploy to Production'
+    dependsOn: BuildStage  # Sirf tab chalega jab Build pass ho
+    jobs:
+      - job: DeployJob
+        steps:
+          - script: |
+              echo "Starting Deployment..."
+              echo "Deploying to the server..."
+              sleep 2
+              echo "Deployment Successful! 🚀"
+            displayName: 'Deploy Script'
